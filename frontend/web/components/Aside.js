@@ -188,8 +188,9 @@ const Aside = class extends Component {
                                                                           position: 'relative',
                                                                           bottom: 2,
                                                                           left: 5,
+                                                                          padding: '2px 8px'
                                                                       }}
-                                                                      className="chip chip--active bg-secondary"
+                                                                      className={`chip chip--active${Utils.getIsEdge()?'':' secondary'}`}
                                                                     >
                                                                         <a href="https://docs.flagsmith.com/next/advanced-use/edge-api#enabling-the-edge-api" className="text-white font-weight-bold">
                                                                             {Utils.getIsEdge() ? 'Edge' : 'Core'}
