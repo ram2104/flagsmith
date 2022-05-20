@@ -90,6 +90,8 @@ INSTALLED_APPS = [
     "django.contrib.humanize",
     "rest_framework",
     "rest_framework.authtoken",
+    # Used for managing api keys
+    "rest_framework_api_key",
     "djoser",
     "django.contrib.sites",
     "custom_auth",
