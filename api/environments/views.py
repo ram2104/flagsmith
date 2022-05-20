@@ -23,6 +23,7 @@ from permissions.serializers import (
     UserObjectPermissionsSerializer,
 )
 from projects.models import Project
+from projects.permissions import HasProjectAPIKey
 from webhooks.mixins import TriggerSampleWebhookMixin
 from webhooks.webhooks import WebhookType
 
@@ -63,7 +64,7 @@ logger = logging.getLogger(__name__)
 )
 class EnvironmentViewSet(viewsets.ModelViewSet):
     lookup_field = "api_key"
-    permission_classes = [IsAuthenticated, EnvironmentPermissions]
+    permission_classes = [EnvironmentPermissions | HasProjectAPIKey]
 
     def get_serializer_class(self):
         if self.action == "trait_keys":
@@ -100,9 +101,10 @@ class EnvironmentViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         environment = serializer.save()
-        UserEnvironmentPermission.objects.create(
-            user=self.request.user, environment=environment, admin=True
-        )
+        if not self.request.user.is_anonymous:
+            UserEnvironmentPermission.objects.create(
+                user=self.request.user, environment=environment, admin=True
+            )
 
     @action(detail=True, methods=["GET"], url_path="trait-keys")
     def trait_keys(self, request, *args, **kwargs):

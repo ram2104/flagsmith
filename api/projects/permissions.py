@@ -1,9 +1,16 @@
+import typing
+
+from django.core.exceptions import ObjectDoesNotExist
+from django.http import HttpRequest
 from rest_framework.exceptions import APIException, PermissionDenied
 from rest_framework.permissions import BasePermission
+from rest_framework_api_key.permissions import BaseHasAPIKey
 
 from organisations.models import Organisation
 from organisations.permissions.permissions import CREATE_PROJECT
 from projects.models import Project
+
+from .models import ProjectAPIKey
 
 # Maintain a list of permissions here
 PROJECT_PERMISSIONS = [
@@ -96,3 +103,39 @@ class IsProjectAdmin(BasePermission):
             )
         except Project.DoesNotExist:
             raise PermissionDenied()
+
+
+# TODO: this should really be environment permission
+class HasProjectAPIKey(BaseHasAPIKey):
+    model = ProjectAPIKey
+
+    def has_permission(self, request: HttpRequest, view: typing.Any) -> bool:
+        key = self.get_key(request)
+        if not key:
+            return False
+        try:
+            key_obj = self.model.objects.get_from_key(key)
+        except ObjectDoesNotExist:
+            return False
+
+        # TODO: should be part of authentication?
+        request.api_key = key_obj
+
+        # will be handled by has object permission
+        if view.detail:
+            return True
+
+        if view.action == "permissions":
+            # Allow access to permission since it
+            # returns a generic response
+            return True
+        if view.action == "create":
+            project = request.data.get("project")
+            if project.isdigit() and int(project) == key_obj.project.id:
+                return True
+        return False
+
+    def has_object_permission(
+        self, request: HttpRequest, view: typing.Any, obj
+    ) -> bool:
+        return obj.project == request.api_key.project

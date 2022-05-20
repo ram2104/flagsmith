@@ -662,3 +662,39 @@ class EnvironmentAPIKeyViewSetTestCase(TestCase):
 
         # Then
         assert not EnvironmentAPIKey.objects.filter(id=api_key.id)
+
+
+def test_can_create_environments_with_project_api_key(
+    api_client, project, project_api_key
+):
+    # Given
+    api_client.credentials(HTTP_AUTHORIZATION="Api-Key " + project_api_key)
+    url = reverse("api-v1:environments:environment-list")
+    data = {"name": "Test environment", "project": project.id}
+
+    # When
+    response = api_client.post(url, data=data)
+    breakpoint()
+    # Then
+    assert response.status_code == status.HTTP_201_CREATED
+
+    # # and user is admin
+    # assert UserEnvironmentPermission.objects.filter(
+    #     user=self.user, admin=True, environment__id=response.json()["id"]
+    # ).exists()
+
+
+def test_can_featch_traits_of_environment_using_project_api_key(
+    api_client, project_api_key, environment
+):
+    # TODO: move this to fixture
+    api_client.credentials(HTTP_AUTHORIZATION="Api-Key " + project_api_key)
+    url = reverse(
+        "api-v1:environments:environment-trait-keys", args=[environment.api_key]
+    )
+
+    # When
+    res = api_client.get(url)
+
+    # Then
+    assert res.status_code == status.HTTP_200_OK

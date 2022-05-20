@@ -55,8 +55,11 @@ class EnvironmentSerializerLight(serializers.ModelSerializer):
             ENVIRONMENT_CREATED_MESSAGE if created else ENVIRONMENT_UPDATED_MESSAGE
         ) % instance.name
         request = self.context.get("request")
+        # TODO: can request not have user?
+        # author = getattr(request, "user", None)
+        author = None if request.user.is_anonymous else request.user
         AuditLog.objects.create(
-            author=getattr(request, "user", None),
+            author=author,
             related_object_id=instance.id,
             related_object_type=RelatedObjectType.ENVIRONMENT.name,
             environment=instance,

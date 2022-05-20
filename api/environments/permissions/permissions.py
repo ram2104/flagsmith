@@ -2,7 +2,7 @@ import typing
 
 from django.db.models import Model, Q
 from rest_framework import exceptions
-from rest_framework.permissions import BasePermission
+from rest_framework.permissions import BasePermission, IsAuthenticated
 
 from environments.models import Environment
 from projects.models import Project
@@ -23,8 +23,11 @@ class EnvironmentKeyPermissions(BasePermission):
         return True
 
 
-class EnvironmentPermissions(BasePermission):
+class EnvironmentPermissions(IsAuthenticated):
     def has_permission(self, request, view):
+        if not super().has_permission(request, view):
+            return False
+
         if view.action == "create":
             try:
                 project_id = request.data.get("project")
@@ -40,9 +43,10 @@ class EnvironmentPermissions(BasePermission):
         return True
 
     def has_object_permission(self, request, view, obj):
+        if request.user.is_anonymous:
+            return False
         if view.action == "clone":
             return request.user.is_project_admin(obj.project)
-
         return request.user.is_environment_admin(obj) or view.action in [
             "user_permissions"
         ]

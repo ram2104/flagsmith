@@ -10,7 +10,7 @@ from features.models import Feature
 from features.multivariate.models import MultivariateFeatureOption
 from features.value_types import STRING
 from organisations.models import Organisation, OrganisationRole
-from projects.models import Project
+from projects.models import Project, ProjectAPIKey
 from segments.models import EQUAL, Condition, Segment, SegmentRule
 from users.models import FFAdminUser
 
@@ -110,3 +110,9 @@ def reset_cache():
     cache.clear()
     yield
     cache.clear()
+
+
+@pytest.fixture()
+def project_api_key(project):
+    obj, key = ProjectAPIKey.objects.create_key(name="test_key", project=project)
+    return key
