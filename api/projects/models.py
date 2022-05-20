@@ -6,6 +6,7 @@ from django.core.cache import caches
 from django.db import models
 from django.utils import timezone
 from django_lifecycle import BEFORE_CREATE, LifecycleModel, hook
+from rest_framework_api_key.models import AbstractAPIKey
 
 from organisations.models import Organisation
 from permissions.models import (
@@ -99,3 +100,11 @@ class UserProjectPermission(AbstractBasePermissionModel):
         Project, on_delete=models.CASCADE, related_query_name="userpermission"
     )
     admin = models.BooleanField(default=False)
+
+
+class ProjectAPIKey(AbstractAPIKey):
+    project = models.ForeignKey(
+        Project,
+        on_delete=models.CASCADE,
+        related_name="api_keys",
+    )

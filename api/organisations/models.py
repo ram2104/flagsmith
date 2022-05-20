@@ -5,6 +5,7 @@ from django.conf import settings
 from django.db import models
 from django.utils import timezone
 from django_lifecycle import AFTER_CREATE, AFTER_SAVE, LifecycleModel, hook
+from rest_framework_api_key.models import AbstractAPIKey
 
 from organisations.chargebee import (
     get_customer_id_from_subscription_id,
@@ -91,6 +92,14 @@ class UserOrganisation(models.Model):
             "user",
             "organisation",
         )
+
+
+class OrganisationAPIKey(AbstractAPIKey):
+    organisation = models.ForeignKey(
+        Organisation,
+        on_delete=models.CASCADE,
+        related_name="api_keys",
+    )
 
 
 class Subscription(LifecycleModel, models.Model):
